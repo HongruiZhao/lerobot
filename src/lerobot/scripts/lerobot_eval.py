@@ -46,6 +46,20 @@ Note that in both examples, the repo/folder should contain at least `config.json
 You can learn about the CLI options for this script in the `EvalPipelineConfig` in lerobot/configs/eval.py
 """
 
+import logging
+import os
+import getpass
+import tempfile
+
+#  "/tmp/robosuite.log" is used by aayushi. I will create "/tmp/robosuite_hongrui.log" to avoid conflicts
+_original_file_handler_init = logging.FileHandler.__init__
+def _patched_file_handler_init(self, filename, *args, **kwargs):
+    if filename == "/tmp/robosuite.log":
+        filename = os.path.join(tempfile.gettempdir(), f"robosuite_{getpass.getuser()}.log")
+    _original_file_handler_init(self, filename, *args, **kwargs)
+logging.FileHandler.__init__ = _patched_file_handler_init
+
+
 import concurrent.futures as cf
 import json
 import logging

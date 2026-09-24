@@ -32,13 +32,14 @@ import torch.nn as nn
 import torch.nn.functional as F  # noqa: N812
 from torch import Tensor
 
-from lerobot.rewards.pretrained import PreTrainedRewardModel
-from lerobot.rewards.sarm.configuration_sarm import SARMConfig
-from lerobot.rewards.sarm.sarm_utils import (
+from lerobot.utils.constants import OBS_STR
+
+from ..pretrained import PreTrainedRewardModel
+from .configuration_sarm import SARMConfig
+from .sarm_utils import (
     normalize_stage_tau,
     pad_state_to_max_dim,
 )
-from lerobot.utils.constants import OBS_STR
 
 
 class StageTransformer(nn.Module):
@@ -361,6 +362,7 @@ class SARMRewardModel(PreTrainedRewardModel):
     Training uses 75%/25% GT/predicted stage conditioning (teacher forcing).
     """
 
+    config: SARMConfig
     name = "sarm"
     config_class = SARMConfig
 
@@ -563,6 +565,8 @@ class SARMRewardModel(PreTrainedRewardModel):
 
         # Get num_classes for this scheme
         num_classes = self.config.num_sparse_stages if scheme == "sparse" else self.config.num_dense_stages
+        if num_classes is None:
+            raise ValueError(f"num_dense_stages must be configured to use the {scheme!r} head")
 
         # Run stage model
         stage_logits = self.stage_model(img_seq, lang_emb, state, lens, scheme=scheme)
@@ -674,6 +678,8 @@ class SARMRewardModel(PreTrainedRewardModel):
             Dict with stage_loss, subtask_loss, total_loss
         """
         num_classes = self.config.num_sparse_stages if scheme == "sparse" else self.config.num_dense_stages
+        if num_classes is None:
+            raise ValueError(f"num_dense_stages must be configured to train the {scheme!r} head")
 
         # Ground truth: stage (integer) and tau (fractional)
         # Clamp stage indices to valid range [0, num_classes-1] to handle edge cases

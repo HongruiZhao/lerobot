@@ -1,0 +1,17 @@
+lerobot-train \
+  --policy.path=download_models/smolvla_base\
+  --policy.device=cuda \
+  --policy.push_to_hub=false \
+  --policy.empty_cameras=1 \
+  --dataset.repo_id=HuggingFaceVLA/libero \
+  --env.type=libero \
+  --env.task=libero_goal \
+  --rename_map='{"observation.images.image": "observation.images.camera1", "observation.images.image2": "observation.images.camera2"}' \
+  --output_dir=./outputs/train/May20_smolVLA_finetuning_fromBase \
+  --job_name=May20_smolVLA_finetuning_fromBase \
+  --wandb.enable=true \
+  --steps=100000 \
+  --batch_size=64 \
+  --eval.batch_size=1 \
+  --eval.n_episodes=1 \
+  --eval_freq=1000 \
